@@ -79,7 +79,6 @@ func main() {
 		log.Fatalf("failed to migrate databse: %s", err)
 	}
 
-
 	// Last env vars
 	salt, err := envy.MustGet("SALT")
 	if err != nil {
@@ -90,11 +89,16 @@ func main() {
 	if err != nil {
 		envTime = 10
 	}
+	scaleRaw := envy.Get("SCALE", "10")
+	scale, err := strconv.Atoi(scaleRaw)
+	if err != nil {
+		scale = 1
+	}
 
 	log.Println("Setting up worker")
 
 	hitlog := make(chan Hit, 500)
-	for i := 0; i < 3; i++ {
+	for i := 0; i < scale; i++ {
 		go worker(i, hitlog, salt, db, envTime)
 	}
 
