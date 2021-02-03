@@ -1,14 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"encoding/base64"
 	"github.com/go-chi/chi/middleware"
-	"hash/crc32"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"crypto/sha512"
 
 	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
@@ -89,10 +90,11 @@ func main() {
 	if err != nil {
 		envTime = 10
 	}
-	scaleRaw := envy.Get("SCALE", "10")
+	scaleRaw := envy.Get("SCALE", "1")
 	scale, err := strconv.Atoi(scaleRaw)
 	if err != nil {
 		scale = 1
+
 	}
 
 	log.Println("Setting up worker")
@@ -131,9 +133,8 @@ func main() {
 		}
 
 		hitlog <- ht
-
-		w.Write([]byte(".snoopy {\n  color: #28a745 !important;\n}"))
 		w.Header().Set("Content-Type", "text/css")
+		w.Write([]byte(".snoopy {\n  color: #28a745 !important;\n}"))
 	})
 
 	http.ListenAndServe(":3000", r)
@@ -143,9 +144,14 @@ func main() {
 }
 
 func worker(id int, hits <-chan Hit, salt string, db *gorm.DB, envTime int) {
+
+	hasher := sha512.New()
+
 	for hit := range hits {
 
-		key := fmt.Sprint(crc32.ChecksumIEEE([]byte(hit.IP + salt)))
+		//key := fmt.Sprint(crc32.ChecksumIEEE([]byte(hit.IP + salt)))
+		hasher.Reset()
+		key := base64.URLEncoding.EncodeToString(hasher.Sum([]byte(hit.IP + salt)))
 
 		rec := Record{}
 
