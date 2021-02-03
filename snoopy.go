@@ -19,7 +19,7 @@ import (
 )
 
 type Record struct {
-	ID        string    `gorm:"primarykey"`
+	ID        string    `gorm:"primarykey;size:512"`
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time `gorm:"index"`
 	DeletedAt gorm.DeletedAt
