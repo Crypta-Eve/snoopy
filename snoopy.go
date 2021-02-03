@@ -19,12 +19,12 @@ import (
 )
 
 type Record struct {
-	ID        string    `gorm:"primarykey;size:512"`
+	ID        uint64    `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time `gorm:"index"`
 	DeletedAt gorm.DeletedAt
 
-	IP   string
+	IP   string `gorm:"index;size:512"`
 	Slug string
 }
 
