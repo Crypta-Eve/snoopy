@@ -19,10 +19,10 @@ import (
 )
 
 type Record struct {
-	ID        uint           `gorm:"primarykey"`
-	CreatedAt time.Time      `gorm:"index"`
-	UpdatedAt time.Time      `gorm:"index"`
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID        string    `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+	DeletedAt gorm.DeletedAt
 
 	IP   string
 	Slug string
