@@ -5,6 +5,12 @@
 
 Snoopy is a very lightweight and simplistic, anonomised usage tracker
 
+## Privacy
+
+In order to be able to track users through IP whilst also anonymising the records, the identifier stored in the database consists of a salted IP hashed using SHA512. This can be seen [here](https://github.com/Crypta-Eve/snoopy/blob/efca2a4942abf7abd1bb11626b73d5806c900bf3/snoopy.go#L154)
+
+Whilst any system is vulnerable if the underlying server is fully breached, server security is the concern of the admin and not this project.
+
 ## Getting started
 
 The recomended way to run this service is through using the provided Dockerfile. However feel free to run it from source.
@@ -33,5 +39,10 @@ The following endpoints are configured for the service
 #### /ping
 Accessible as a system health endpoint, returns a period (`.`).
 
-#### /snoopy/{slug}
-This is the tracking enpoint, the DB record consists of a salted and hashed IP, and the `slug` identifier.
+#### /snoopy/{slug}.css
+This is the tracking enpoint, the DB record consists of a salted and hashed IP, and the `slug` identifier. It will return the following css
+```css
+.snoopy {
+  color: #28a745 !important;
+}
+```
