@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+  <title>Snoopy!!</title>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Snoopy Stats Page</a>
+    </div>
+  </nav>
+
+
+  <div class="container">
+
+    <div class="card text-white bg-secondary">
+      <!-- <div class="card-header">
+        <h3>Total Unique Users across all plugins</h3>
+      </div> -->
+      <div class="card-body">
+        <div id="totalChart"></div>
+      </div>
+    </div>
+
+    <div class="card text-white bg-secondary">
+      <!-- <div class="card-header">
+        <h3>Total Unique Users across all plugins</h3>
+      </div> -->
+      <div class="card-body">
+        <div id="sessionsChart"></div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+    crossorigin="anonymous"></script>
+
+  <!-- Highcharts -->
+  <script src="https://code.highcharts.com/highcharts.src.js"></script>
+
+  <script>
+
+    var start = Date.UTC(2021, 1, 1)
+
+    Highcharts.chart('totalChart', {
+      xAxis: {
+        type: 'datetime'
+      },
+      yAxis: {
+        title: {
+          text: "Count"
+        }
+      },
+      title: {
+        text: 'Total Unique Users'
+      },
+      subtitle : {
+        text: 'Users are differentiated based on unique IP address'
+      },
+      series: [{
+        pointStart: start,
+        pointIntervalUnit: 'month',
+        name: 'Unique Users',
+        data: [
+          {{ range .Totals }}
+              {{.Users }},
+          {{ end }}
+          ]
+        }]
+      });
+
+
+
+    Highcharts.chart('sessionsChart', {
+      xAxis: {
+        type: 'datetime'
+      },
+      yAxis: {
+        title: {
+          text: "Count"
+        }
+      },
+      title: {
+        text: 'Total Unique Sessions'
+      },
+      subtitle : {
+        text: 'A session is based on an inactive period of {{.SessionTime}} minutes'
+      },
+      series: [{
+        pointStart: start,
+        pointIntervalUnit: 'month',
+        name: 'Unique Sessions',
+        data: [
+          {{ range .Sessions }}
+              {{.Users }},
+          {{ end }}
+          ]
+        }]
+      });
+
+  </script>
+
+</body>
+
+</html>

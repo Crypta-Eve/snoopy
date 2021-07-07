@@ -1,13 +1,16 @@
 package main
 
 import (
+	"embed"
 	"encoding/base64"
-	"github.com/go-chi/chi/middleware"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-chi/chi/middleware"
 
 	"crypto/sha512"
 
@@ -32,6 +35,23 @@ type Hit struct {
 	IP   string
 	Slug string
 }
+
+type StatData struct {
+	FirstRecordDate time.Time
+	Totals          []StatList
+	Sessions        []StatList
+	SessionTime     int
+}
+
+type StatList struct {
+	Users uint32
+	Time  int
+}
+
+var (
+	//go:embed assets/*
+	assetData embed.FS
+)
 
 func main() {
 
@@ -122,6 +142,11 @@ func main() {
 	// processing should be stopped.
 	r.Use(middleware.Timeout(60 * time.Second))
 
+	t, err := template.ParseFS(assetData, "assets/stats.html")
+	if err != nil {
+		log.Fatalf("unable to parse template: %w", err)
+	}
+
 	r.Get("/snoopy/{slug}", func(w http.ResponseWriter, r *http.Request) {
 
 		ip := strings.Split(r.RemoteAddr, ":")[0]
@@ -135,6 +160,27 @@ func main() {
 		hitlog <- ht
 		w.Header().Set("Content-Type", "text/css")
 		w.Write([]byte(".snoopy {\n  color: #28a745 !important;\n}"))
+	})
+
+	r.Get("/stats", func(w http.ResponseWriter, r *http.Request) {
+
+		var users []StatList
+		db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records GROUP BY time ORDER BY time").Scan(&users)
+
+		var sessions []StatList
+		db.Raw("SELECT COUNT(IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records GROUP BY time ORDER BY time").Scan(&sessions)
+
+		var start time.Time
+		db.Raw("SELECT updated_at from records order by updated_at limit 1").Scan(&start)
+
+		sd := StatData{
+			FirstRecordDate: start,
+			Totals:          users,
+			Sessions:        sessions,
+			SessionTime:     envTime,
+		}
+
+		t.Execute(w, sd)
 	})
 
 	http.ListenAndServe(":3000", r)
