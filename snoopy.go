@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"embed"
 	"encoding/base64"
 	"html/template"
@@ -41,6 +42,8 @@ type StatData struct {
 	Totals          []StatList
 	Sessions        []StatList
 	SessionTime     int
+	PluginUsers     map[string][]StatList
+	PluginSessions  map[string][]StatList
 }
 
 type StatList struct {
@@ -64,6 +67,7 @@ func main() {
 	mariaPass := envy.Get("MARIA_PASS", "snoopy")
 	mariaDatabase := envy.Get("MARIA_DATABASE", "snoopy")
 
+	statSlugs := strings.Split(envy.Get("STAT_SLUGS", "%"), ",")
 	// Set up GORM logger
 	//dbLogger := logger.New(
 	//	log.New(os.Stdout, "\r\n", log.LstdFlags),
@@ -173,14 +177,41 @@ func main() {
 		var start time.Time
 		db.Raw("SELECT updated_at from records order by updated_at limit 1").Scan(&start)
 
+		slugUsers := make(map[string][]StatList, len(statSlugs))
+		slugSessions := make(map[string][]StatList, len(statSlugs))
+
+		for _, v := range statSlugs {
+			var pluginUsers []StatList
+			db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
+				sql.Named("plugin", v),
+			).Scan(&pluginUsers)
+
+			slugUsers[v] = pluginUsers
+			// log.Printf("Plugin %s has %d user entries", v, len(pluginUsers))
+
+			var pluginSessions []StatList
+			db.Raw("SELECT COUNT(IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
+				sql.Named("plugin", v),
+			).Scan(&pluginSessions)
+
+			slugSessions[v] = pluginSessions
+			// log.Printf("Plugin %s has %d session entries", v, len(pluginSessions))
+
+		}
+
 		sd := StatData{
 			FirstRecordDate: start,
 			Totals:          users,
 			Sessions:        sessions,
 			SessionTime:     envTime,
+			PluginUsers:     slugUsers,
+			PluginSessions:  slugSessions,
 		}
 
-		t.Execute(w, sd)
+		err := t.Execute(w, sd)
+		if err != nil {
+			panic(err)
+		}
 	})
 
 	http.ListenAndServe(":3000", r)

@@ -24,38 +24,50 @@
 
   <div class="container">
 
+    <!-- Overall Graph -->
+
     <div class="card text-white bg-secondary">
-      <!-- <div class="card-header">
-        <h3>Total Unique Users across all plugins</h3>
-      </div> -->
       <div class="card-body">
         <div id="totalChart"></div>
       </div>
     </div>
 
     <div class="card text-white bg-secondary">
-      <!-- <div class="card-header">
-        <h3>Total Unique Users across all plugins</h3>
-      </div> -->
       <div class="card-body">
         <div id="sessionsChart"></div>
+      </div>
+    </div>
+
+    <div class="card text-white bg-secondary">
+      <div class="card-body">
+        <div id="pUsersChart"></div>
+      </div>
+    </div>
+
+    <div class="card text-white bg-secondary">
+      <div class="card-body">
+        <div id="pSessionsChart"></div>
       </div>
     </div>
 
 
   </div>
 
-  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <!-- Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
     crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.js" integrity="sha256-8AdWdyRXkrETyAGla9NmgkYVlqw4MOHR6sJJmtFGAYQ=" crossorigin="anonymous"></script>
 
   <!-- Highcharts -->
   <script src="https://code.highcharts.com/highcharts.src.js"></script>
 
   <script>
 
-    var start = Date.UTC(2021, 1, 1)
+    var date = new Date(Date.parse({{ .FirstRecordDate }}));
+    var start = moment({{.FirstRecordDate}}, "YYYYMM");
+
 
     Highcharts.chart('totalChart', {
       xAxis: {
@@ -111,6 +123,74 @@
           {{ end }}
           ]
         }]
+      });
+
+      Highcharts.chart('pUsersChart', {
+      xAxis: {
+        type: 'datetime'
+      },
+      yAxis: {
+        title: {
+          text: "Count"
+        }
+      },
+      title: {
+        text: 'Plugin Differentiated Unique Users'
+      },
+      subtitle : {
+        text: 'Users are differentiated based on unique IP address'
+      },
+      series: [
+        {{ range $k, $v := .PluginUsers}}
+
+        {
+        pointStart: start,
+        pointIntervalUnit: 'month',
+        name: '{{ $k }}',
+        data: [
+          {{ range $u, $i := $v }}
+              {{$i.Users}},
+          {{ end }}
+          ]
+        },
+
+        {{ end }}
+      
+      ]
+      });
+
+      Highcharts.chart('pSessionsChart', {
+      xAxis: {
+        type: 'datetime'
+      },
+      yAxis: {
+        title: {
+          text: "Count"
+        }
+      },
+      title: {
+        text: 'Plugin Differentiated Unique Sessions'
+      },
+      subtitle : {
+        text: 'A session is based on an inactive period of {{.SessionTime}} minutes'
+      },
+      series: [
+        {{ range $k, $v := .PluginSessions}}
+
+        {
+        pointStart: start,
+        pointIntervalUnit: 'month',
+        name: '{{ $k }}',
+        data: [
+          {{ range $u, $i := $v }}
+              {{$i.Users}},
+          {{ end }}
+          ]
+        },
+
+        {{ end }}
+      
+      ]
       });
 
   </script>
