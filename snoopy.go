@@ -169,20 +169,21 @@ func main() {
 	r.Get("/stats", func(w http.ResponseWriter, r *http.Request) {
 
 		var users []StatList
-		db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records GROUP BY time ORDER BY time").Scan(&users)
+		db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(created_at)*100)+MONTH(created_at) as time FROM records GROUP BY time ORDER BY time").Scan(&users)
 
 		var sessions []StatList
-		db.Raw("SELECT COUNT(IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records GROUP BY time ORDER BY time").Scan(&sessions)
+		db.Raw("SELECT COUNT(IP) as users, (YEAR(created_at)*100)+MONTH(created_at) as time FROM records GROUP BY time ORDER BY time").Scan(&sessions)
 
 		var start time.Time
-		db.Raw("SELECT updated_at from records order by updated_at limit 1").Scan(&start)
+		db.Raw("SELECT created_at from records order by created_at limit 1").Scan(&start)
+		start = time.Date(start.Year(), start.Month(), 1, 0, 0, 0, 0, time.UTC)
 
 		slugUsers := make(map[string][]StatList, len(statSlugs))
 		slugSessions := make(map[string][]StatList, len(statSlugs))
 
 		for _, v := range statSlugs {
 			var pluginUsers []StatList
-			db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
+			db.Raw("SELECT COUNT(DISTINCT IP) as users, (YEAR(created_at)*100)+MONTH(created_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
 				sql.Named("plugin", v),
 			).Scan(&pluginUsers)
 
@@ -190,7 +191,7 @@ func main() {
 			// log.Printf("Plugin %s has %d user entries", v, len(pluginUsers))
 
 			var pluginSessions []StatList
-			db.Raw("SELECT COUNT(IP) as users, (YEAR(updated_at)*100)+MONTH(updated_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
+			db.Raw("SELECT COUNT(IP) as users, (YEAR(created_at)*100)+MONTH(created_at) as time FROM records WHERE slug LIKE @plugin GROUP BY time ORDER BY time",
 				sql.Named("plugin", v),
 			).Scan(&pluginSessions)
 

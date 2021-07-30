@@ -66,12 +66,13 @@
   <script>
 
     var date = new Date(Date.parse({{ .FirstRecordDate }}));
-    var start = moment({{.FirstRecordDate}}, "YYYYMM");
+    var start = moment.utc({{.FirstRecordDate}}, "YYYYMM");
 
 
     Highcharts.chart('totalChart', {
       xAxis: {
-        type: 'datetime'
+        type: 'datetime',
+        startOnTick: true
       },
       yAxis: {
         title: {
@@ -100,7 +101,8 @@
 
     Highcharts.chart('sessionsChart', {
       xAxis: {
-        type: 'datetime'
+        type: 'datetime',
+        startOnTick: true
       },
       yAxis: {
         title: {
@@ -127,7 +129,8 @@
 
       Highcharts.chart('pUsersChart', {
       xAxis: {
-        type: 'datetime'
+        type: 'datetime',
+        startOnTick: true
       },
       yAxis: {
         title: {
@@ -161,7 +164,8 @@
 
       Highcharts.chart('pSessionsChart', {
       xAxis: {
-        type: 'datetime'
+        type: 'datetime',
+        startOnTick: true
       },
       yAxis: {
         title: {
